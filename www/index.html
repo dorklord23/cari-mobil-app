@@ -1,0 +1,463 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="img-src 'self' data: https://*.gstatic.com https://*.googleapis.com; script-src 'self' https://*.googleapis.com">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="msapplication-tap-highlight" content="no">
+    <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width">
+    <link rel="stylesheet" href="css/onsenui.css">
+    <link rel="stylesheet" href="css/onsen-css-components.css">
+    <link rel="stylesheet" href="css/onsen-css-components-sunshine-theme.css">
+    <!--<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Tangerine">-->
+    <link rel="stylesheet" href="css/carimobil.css">
+    <link rel="icon" href="icon/carimobil128x128.png">
+    <script src="js/onsenui_all.min.js"></script>
+    <script src="js/jquery-2.1.4.min.js"></script>
+    <script id="googleMapAPI" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDonpfInxGTgPeDadpGy7pm6yEPRfVdW_Y&libraries=places"></script>
+    <script src="js/ng-cordova.min.js"></script>
+    <!--cordova.js will only run in Android devices-->
+    <script src="cordova.js"></script>
+    <script src="js/socket.io.js"></script>
+    <!--<script src="http://192.168.1.13:8081/socket.io/socket.io.js"></script>-->
+    <script src="js/carimobil.js"></script>
+    <!--onsenui_all.min.js already includes AngularJS-->
+    <title>CariMobil</title>
+</head>
+<body>
+    <ons-sliding-menu menu-page="menuPage" swipeable="false" var="slidingMenu">
+        <div class="main">
+            <ons-navigator title="Navigator" var="myNavigator" page="splashscreenPage"></ons-navigator>
+        </div>          
+    </ons-sliding-menu>
+    
+    <ons-template id="menuPage">
+        <ons-page modifier="bottomRightLogo"><!--ng-controller="menuPageController"-->
+            Menu page contents
+        </ons-page>
+    </ons-template>
+    
+    <ons-template id="splashscreenPage">
+        <ons-page ng-controller="splashscreenPageController"><!--ng-controller="splashscreenPageController"-->
+            <div><img class="blinkingLogo splashscreen" src="picture/logo-sena-full.png"></div>
+        </ons-page>
+    </ons-template>
+    
+    <ons-template id="mainPage">
+            <ons-page ng-controller="mainPageController" modifier="bottomRightLogo">
+                <ons-toolbar>
+                    <div class="center header">WELCOME</div>
+                    <div class="right">
+                        <div class="spinningCircle" ></div>
+                    </div>
+                </div>
+                </ons-toolbar>
+                <br>
+                <div class="front-form" id="a"><!--
+                    <button modifier="material" class="button" id="driverButton" ng-click="myNavigator.pushPage('driverPage', { animation : 'slide' } )">
+                        <ons-icon icon="ion-android-car" size="5em" fixed-width="true">
+                        </ons-icon>
+                    </button>
+                    <br><br>
+                    <button modifier="material" class="button" id="passengerButton" ng-click="myNavigator.pushPage('passengerPage', { animation : 'slide' } )">
+                        <ons-icon icon="ion-android-walk" size="5x" fixed-width="true">
+                        </ons-icon>
+                    </button>-->
+                <ons-gesture-detector ng-hold="serverAddressModal.show()">
+                    <button class="button" ng-click="signupFormModal.show()">
+                        REGISTER
+                    </button>
+                </ons-gesture-detector>
+                    <br><br>
+                    <button class="button" ng-click="loginFormModal.show()">
+                        LOGIN
+                    </button>
+                </div><br>
+            </ons-page>
+    </ons-template>
+
+    <!--DRIVER PAGE (WHERE YOU WAIT FOR AN ORDER)-->
+    <ons-template id="driverPage">
+        <ons-page ng-controller="driverPageController" ng-device-backbutton="myNavigator.popPage()">
+            <ons-toolbar>
+                <div class="left">
+                    <ons-toolbar-button ng-click="logOut()">
+                        <ons-icon icon="ion-log-out">
+                        </ons-icon>
+                    </ons-toolbar-button>
+                </div>
+                <div class="center header">DRIVER</div>
+                <div class="right">
+                    <div class="spinningCircle" ></div>
+                </div>
+            </ons-toolbar><br>
+            <div class="google-map">
+                <img class="splashscreen" src="picture/moving-car.gif">
+            </div>
+        </ons-page>
+    </ons-template>
+    
+    <!--PICKUP ORDER REVIEW PAGE-->
+    <ons-template id="pickUpOrderPage">
+        <ons-page ng-controller="pickUpOrderPageController" modifier="bottomRightLogo">
+            <ons-toolbar>
+                <!--<div class="left">
+                    <ons-back-button>Back</ons-back-button>
+                </div>-->
+                <div class="center header">INCOMING ORDER</div>
+                <div class="right">
+                    <div class="spinningCircle" ></div>
+                </div>
+            </ons-toolbar><br>
+            
+            <div id="driverPage_map" class="google-map">
+                <div class="loading">Loading...</div>
+            </div><br>
+
+            <div class="front-form">
+                <div id="passengerData" class="google-map" style="padding:0.2em; text-align: justify;">
+                <ons-row>
+                    <ons-col>
+                        <div class="front-form">
+                            <div>
+                                <img style="height: 70%; width: 50%" alt="The passenger's picture here" src="">
+                            </div>
+                            <div id="passengerName">NAME</div>
+                            <div id="passengerPhoneNumber">PHONE NUMBER</div><br>
+
+                            <div style="text-align: center">FROM</div>
+                            <div id="passengerPickUpPoint"></div><br>
+
+                            <div style="text-align: center">TO</div>
+                            <div id="passengerDestinationPoint"></div><br>
+                            
+                            <div style="text-align: center">PASSENGER'S MESSAGE</div>
+                            <div id="passengerMessage"></div><br>
+
+                            <div style="text-align: center">TRIP TO THE PASSENGER'S LOCATION</div>
+                            <div id="passengerDistance"></div>
+                            <div id="passengerETA"><abbr title="Estimated Time of Arrival">ETA</abbr></div>
+                        </div>
+                    </ons-col>
+                </ons-row><br>
+
+                <ons-row id="orderConsideration">
+                    <ons-col>
+                        <button class="button" ng-click="acceptOrder()">
+                            <ons-ripple></ons-ripple>
+                            ACCEPT
+                        </button>
+                    </ons-col>
+                    &nbsp;&nbsp;
+                    <ons-col>
+                        <button class="button" ng-click="ignoreOrder()">
+                            <ons-ripple></ons-ripple>
+                            IGNORE
+                        </button>
+                    </ons-col>
+                </ons-row>
+                
+                <ons-row id="reachTheDriver">
+                    <ons-col>
+                        <a id="callPassenger" href="#">
+                            <button class="button">
+                                <ons-icon icon="ion-android-call" size="2em" fixed-width="true"></ons-icon>
+                            </button>
+                        </a>
+                    </ons-col>
+                    &nbsp;&nbsp;
+                    <ons-col>
+                        <a id="smsPassenger" href="#">
+                            <button class="button">
+                                <ons-icon icon="ion-android-textsms" size="2em" fixed-width="true"></ons-icon>
+                            </button>
+                        </a>
+                    </ons-col>
+                </ons-row><br>
+                
+                <ons-row id="pickPassengerUp">
+                    <ons-col>
+                        <button class="button">
+                            PICK PASSENGER UP
+                        </button>
+                    </ons-col>
+                </ons-row>
+                
+                <ons-row id="arrivedAtDestination">
+                    <ons-col>
+                        <button class="button" ng-click="myNavigator.popPage()">
+                            ARRIVE
+                        </button>
+                    </ons-col>
+                </ons-row>
+                
+                </div>
+            </div>
+        </ons-page>
+    </ons-template>
+
+    <!--PASSENGER PAGE-->
+    <ons-template id="passengerPage">
+        <ons-page ng-controller="passengerPageController" modifier="bottomRightLogo" ng-device-backbutton="myNavigator.popPage()">
+            <ons-toolbar>
+                <div class="left">
+                    <ons-toolbar-button ng-click="logOut()">
+                        <ons-icon icon="ion-log-out">
+                        </ons-icon>
+                    </ons-toolbar-button>
+                </div>
+                <!--<div class="left">
+                    <ons-back-button>Back</ons-back-button>
+                </div>-->
+                <div class="center header">PASSENGER</div>
+                <div class="right">
+                    <div class="spinningCircle" ></div>
+                </div>
+            </ons-toolbar><br>
+
+            <div id="passengerPage_map" class="google-map">
+                <div class="loading">Loading...</div>
+            </div><br>
+
+            <div class="front-form">
+                <fieldset>
+                    <legend>Pickup Point</legend><!--myNavigator.pushPage('locationSearchPage', {animation : 'lift'} )-->
+                    <input type="search" ng-model="pickUpPoint" id="pickUpPoint" class="search-input" ng-focus="determineLocation('pickUpPoint')" class="text-input--underbar" placeholder="Your current position" autocomplete="on" title="Where you are right now">
+                    <input type="hidden" id="pickUpPointLat">
+                    <input type="hidden" id="pickUpPointLng"><br>
+                    <input type="text" id="messageForDriver" class="text-input--underbar" placeholder="Message for the driver" autocomplete="on" title="Message to the driver"><br>
+                </fieldset><br>
+
+                <div id="tripEstimationResult">
+                    <fieldset>
+                        <legend>Trip Estimation</legend>
+                        <span style="font-size:small">It will take approx. <span id="tripDuration"></span> to reach <span span="tripDistance"></span></span style="font-size:small">
+                    </fieldset><br>
+                </div>
+
+                <fieldset>
+                    <legend>Destination Point</legend>
+                    <input type="search" ng-model="destinationPoint" id="destinationPoint" class="search-input" ng-focus="determineLocation('destinationPoint')" class="text-input--underbar" placeholder="The place you're going to" autocomplete="on" title="Where you are right now">
+                    <input type="hidden" id="destinationPointLat">
+                    <input type="hidden" id="destinationPointLng"><br>
+                </fieldset><br>
+
+                <!--When this button is clicked, send the passenger data to server and move on to the next page-->
+                <ons-button modifier="material" ng-click="submitOrder()">
+                    <!--<ons-icon icon="ion-checkmark" size="2em" fixed-width="true"></ons-icon>-->
+                    <span style="font-weight: bold">Pick me up :3</span>
+                </ons-button>
+            </div>
+            <br>
+        </ons-page>
+    </ons-template>
+
+    <!--FOUND DRIVER PAGE-->
+    <ons-template id="foundDriverPage">
+        <ons-page ng-controller="foundDriverController" modifier="bottomRightLogo">
+            <ons-toolbar>
+                <div class="left">
+                    <ons-back-button>Back</ons-back-button>
+                </div>
+                <div class="center header">
+                    FOUND A DRIVER
+                </div>
+                <div class="right">
+                    <div class="spinningCircle" ></div>
+                </div>
+            </ons-toolbar><br>
+
+            <div id="driverToPassenger_map" class="google-map">
+            </div><br>
+
+            <div class="google-map" style="padding:0.2em; text-align: justify;">
+                <ons-row>
+                    <ons-col>
+                        <div class="front-form">
+                            <div>
+                                <img style="height: 70%; width: 50%" alt="The driver's picture here" src="">
+                            </div>
+                            <div id="driverName">NAME</div>
+                            <div id="driverPhoneNumber">PHONE NUMBER</div>
+                            <!--<div id="driverLocation">LOCATION</div>-->
+                            <div id="driverDistance">DISTANCE</div>
+                            <div id="driverETA"><abbr title="Estimated Time of Arrival">ETA</abbr></div>
+                        </div>
+                    </ons-col>
+                </ons-row><br>
+                <ons-row>
+                    <ons-col>
+                        <a id="callDriver" href="tel:081213873326">
+                            <button class="button">
+                                <ons-icon icon="ion-android-call" size="2em" fixed-width="true"></ons-icon>
+                            </button>
+                        </a>
+                    </ons-col>&nbsp;&nbsp;
+                    <ons-col>
+                        <a id="smsDriver" href="sms:081213873326">
+                            <button class="button">
+                                <ons-icon icon="ion-android-textsms" size="2em" fixed-width="true"></ons-icon>
+                            </button>
+                        </a>
+                    </ons-col>
+                </ons-row>
+            </div>
+        </ons-page>
+    </ons-template>
+
+    <!--WHERE THE PASSENGER COULD RANT ABOUT THE DRIVER TO HIS/HER HEART'S CONTENT AFTER S/HE HAS BEEN TAKEN-->
+    <ons-template id="passengerFeedbackPage">
+        <ons-page ng-controller="passengerFeedbackController" modifier="bottomRightLogo">
+            <ons-toolbar>
+                <!--<div class="left">
+                    <ons-back-button>Back</ons-back-button>
+                </div>-->
+                <div class="center header">
+                    YOUR FEEDBACK
+                </div>
+                <div class="right">
+                    <div class="spinningCircle" ></div>
+                </div>
+            </ons-toolbar><br>
+            
+            <div class="front-form">
+                <input type="text" ng-model="feedBackTitle" class="text-input--underbar" placeholder="Your feedback's title"><br>
+                <textarea class="textarea" ng-model="feedBackContent" rows="16" placeholder="Your comment, suggestion, critic, complaint, etc"></textarea><br>
+                <div class="rating">
+                    <input type="range" min="1" max="5" class="range" ng-model="feedBackValue">
+                    <input type="hidden" ng-model="feedBackValueText">
+                    <div>{{explanation[feedBackValue]}}</div>
+                </div><br>
+                <button class="button" ng-click="submitFeedBack()">
+                    <ons-icon icon="ion-paper-airplane" size="2em" fixed-width="true"></ons-icon>
+                </button>
+            </div>
+        </ons-page>
+    </ons-template>
+
+    <!--LOCATION SEARCH PAGE-->
+    <ons-template id="locationSearchPage">
+        <ons-page ng-controller="locationSearchController" modifier="bottomRightLogo" ng-device-backbutton="myNavigator.popPage()">
+            <ons-toolbar>
+                <div class="left">
+                    <ons-back-button>Back</ons-back-button>
+                </div>
+                <div class="center header">
+                    LOCATION LOOKUP
+                </div>
+                <div class="right">
+                    <div class="spinningCircle" ></div>
+                </div>
+            </ons-toolbar><br>
+
+            <div id="map"></div>
+            <div class="front-form">
+                <input id="placeToSearch" type="search" class="search-input text-input--underbar" placeholder="The place you're going to" autofocus="autofocus"><br>
+            </div>
+
+            <ons-scroller class="front-form">
+                <ons-list id="searchResultList">
+                    <!--<ons-list-item modifier="tappable">ITEM</ons-list-item>-->
+                </ons-list>
+            </ons-scroller>
+
+            <ons-bottom-toolbar>
+                <div><br>
+                &nbsp;<img style="vertical-align: middle" src="icon/google/powered_by_google_on_white.png">
+                </div>
+            </ons-bottom-toolbar>
+        </ons-page>
+    </ons-template>
+
+    <!--MODAL DIALOG TO SHOW WHILE THE DRIVER IS BEING LOOKED UP-->
+    <ons-modal var="driverSearchModal">
+        <ons-icon icon="ion-load-a" spin="true"></ons-icon>
+        <br>
+        <br>
+        <span>Please wait while we're looking for a driver</span>
+    </ons-modal>
+    
+    <!-- USER REGISTRATION (NAME AND PHONE NUMBER) WHEN S/HE USES THE APP FOR THE FIRST TIME-->
+    <ons-modal var="signupFormModal">
+        <div class="google-map" style="font-weight: bold" ng-controller="signupFormController">
+            <fieldset class="signup-form">
+                <legend>Registration</legend>
+                <input type="text" ng-model="userName" id="userName" ng-focus="" class="text-input--underbar" placeholder="Real name" title="The name to display to the others"><br>
+                <input type="tel" ng-model="userPhoneNumber" id="userPhoneNumber" ng-focus="" class="text-input--underbar" placeholder="Phone number" title="The phone number to display to the others"><br>
+                <input type="password" ng-model="password" class="text-input--underbar" placeholder="Your password"><br>
+                <input type="password" ng-model="confirmPassword" class="text-input--underbar" placeholder="Confirm your password">
+                <ons-row align="center">
+                    <ons-col>
+                        <label class="radio-button">
+                            <input type="radio" name="r" value="driver">
+                            <div class="radio-button__checkmark"></div>
+                            <br>Driver
+                        </label>
+                    </ons-col>
+                    <ons-col>
+                        <label class="radio-button">
+                            <input type="radio" name="r" value="passenger">
+                            <div class="radio-button__checkmark"></div>
+                            <br>Passenger
+                        </label>
+                    </ons-col>
+                </ons-row>
+                <input type="hidden" id="userType" value="">
+                <button class="button" id="userSignUp" ng-click="userSignUp()">Sign Up</button><br><br>
+                <!--<button class="button" ng-click="x()">Switch to Login Form</button><br><br>-->
+                <button class="button" ng-click="cancelSignup()">Cancel</button>
+            </fieldset>
+        </div>
+    </ons-modal>
+    
+    <ons-modal var="loginFormModal">
+        <div class="google-map" style="font-weight: bold" ng-controller="loginFormController">
+            <fieldset class="login-form">
+                <legend><span></span>Login</legend>
+                <input type="tel" ng-model="userPhoneNumber" class="text-input--underbar" placeholder="Phone number" title="The phone number to display to the others"><br>
+                <input type="password" ng-model="password" class="text-input--underbar" placeholder="Your password"><br>
+                <ons-row align="center">
+                    <ons-col>
+                        <label class="radio-button">
+                            <input type="radio" name="r" value="driver">
+                            <div class="radio-button__checkmark"></div>
+                            <br>Driver
+                        </label>
+                    </ons-col>
+                    <ons-col>
+                        <label class="radio-button">
+                            <input type="radio" name="r" value="passenger">
+                            <div class="radio-button__checkmark"></div>
+                            <br>Passenger
+                        </label>
+                    </ons-col>
+                </ons-row>
+                <br>
+                <button class="button" ng-click="logIn()">Log In</button><br><br>
+                <button class="button" ng-click="loginFormModal.hide()">Cancel</button>
+            </fieldset>
+        </div>
+    </ons-modal>
+    
+    <ons-modal var="serverAddressModal">
+        <div class="google-map" style="font-weight: bold" ng-controller="mainPageController">
+            <fieldset class="login-form">
+                <legend>Server Address</legend>
+                <input type="text" id="serverAddress" class="text-input--underbar" placeholder="Server address" value="http://192.168.1.13:8081"><br>
+                <button modifier="material" class="button" ng-click="changeServer()">
+                    OK
+                </button>
+            </fieldset>
+        </div>
+    </ons-modal>
+    
+    <!--<ons-template id="popover.html">
+        <ons-popover var="popover" style="height: 5em; width: 5em" animation="fade" direction="up down" modifier="android" cancelable>
+            <ons-page>
+                <a href="#">LOGIN</a><br>
+                <a href="#">LOGIN</a>
+            </ons-page>
+        </ons-popover>
+    </ons-template>-->
+</body>
+</html>

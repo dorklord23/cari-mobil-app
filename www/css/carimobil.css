@@ -1,0 +1,170 @@
+@font-face {
+    font-family: DroidSansMono;
+    src : url(../font/DroidSansMono.ttf);
+}
+
+body {
+    font-family: DroidSansMono;
+    letter-spacing: 0.1em;
+}
+
+.page--bottomRightLogo__background {
+    /*background-color: white;/*#000; /*Default bg, similar to the background's base color*/
+    background-image: url(../picture/logo-sena-cropped.png);
+    background-position: right bottom; /*Positioning*/
+    background-repeat: no-repeat; /*Prevent showing multiple background images*/
+    background-size: 70%
+}
+
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+    12.5% {
+        opacity: 0.875;
+    }
+    25% {
+        opacity: 0.75;
+    }
+    37.5% {
+        opacity: 0.625;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    62.5% {
+        opacity: 0.385;
+    }
+    75% {
+        opacity: 0.25
+    }
+    87.5% {
+        opacity: 2;
+    }
+    
+}
+
+.blinkingLogo {
+    animation: blink 2.5s;
+    animation-iteration-count: infinite;
+}
+
+.splashscreen {
+    /* So the logo is right in the middle of the screen */
+    /*margin-left: auto;
+    margin-right: auto;*/
+    width:10em;
+    height:10em;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    -webkit-transform : translate(-50%, -50%);
+    -moz-transform : translate(-50%, -50%);
+    -ms-transform : translate(-50%, -50%);
+    -o-transform : translate(-50%, -50%);
+    transform : translate(-50%, -50%);
+}
+
+@keyframes spin {
+	from { transform: rotate(0deg); }
+	to { transform: rotate(360deg); }
+}
+
+.spinningCircle {
+    position: absolute;
+    top: 16%;
+    right: 5%;
+    
+	border-radius: 50%;
+	width: 1.5em;
+	height: 1.5em;
+    
+    background-color: red;
+	/*
+	background-image: -moz-radial-gradient(45px 45px 45deg, circle cover, yellow 0%, orange 100%, red 95%);
+	background-image: -webkit-radial-gradient(45px 45px, circle cover, yellow, orange);
+	background-image: radial-gradient(45px 45px 45deg, circle cover, yellow 0%, orange 100%, red 95%);
+	
+	animation-name: spin; 
+	animation-duration: 3s;
+	animation-iteration-count: infinite; 
+	animation-timing-function: linear; */
+	/* width and height can be anything, as long as they're equal */
+}
+
+.item-label {
+    width:100%;
+    height:100%;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    -webkit-transform : translate(-50%, -50%);
+    -moz-transform : translate(-50%, -50%);
+    -ms-transform : translate(-50%, -50%);
+    -o-transform : translate(-50%, -50%);
+    transform : translate(-50%, -50%);
+}
+
+.header {
+    font-weight: bold;
+    font-size : large
+}
+
+.button {
+    width: 100%;
+    margin: 0 auto
+}
+
+.front-form {
+    text-align: center;
+    width: 90%;
+    margin: auto auto 0; /*60px*/
+}
+
+.google-map {
+    margin-left: auto;
+    margin-right: auto;
+    width:90%;
+    height:40%
+}
+
+.driver-data-display {
+    margin-left: auto;
+    margin-right: auto;
+    width:100%;
+    line-height: 200%;
+    text-align: center
+}
+
+.button {
+    font-weight:bold;
+}
+
+input {
+  display: block;
+  width: 100%;
+  margin: 0 auto;
+  outline: none;
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.login-form input,
+.signup-form input,
+input:hover,
+input:focus {
+  background-color: white
+}
+
+#pickUpOrderReviewMap {
+    width: 100%;
+    height: 100%
+}
+
+.textarea {
+    width: 100%
+}
+
+.rating {
+    font-size: x-large
+}
